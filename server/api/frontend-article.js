@@ -18,7 +18,7 @@ var Like = mongoose.model('Like')
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-exports.getList = (req, res) => {
+exports.getListo = (req, res) => {
     var by = req.query.by,
         id = req.query.id,
         key = req.query.key,
@@ -44,7 +44,7 @@ exports.getList = (req, res) => {
         sort = '-' + by
     }
 
-    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp'
+    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp user items items2 readtime'
 
     Promise.all([
         Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
@@ -54,7 +54,7 @@ exports.getList = (req, res) => {
             totalPage = Math.ceil(total / limit),
             user_id = req.cookies.userid
         data = data.map(item => {
-            item.content = item.content.substring(0, 500) + '...'
+            item.content = item.content.substring(0, 500)
             return item
         })
         var json = {
@@ -153,6 +153,69 @@ exports.getTrending = (req, res) => {
             code: 200,
             data: {
                 list: result
+            }
+        }
+        res.json(json)
+    }).catch(err => {
+        res.json({
+            code: -200,
+            message: err.toString()
+        })
+    })
+}
+
+
+/**
+ * 前台浏览时, 获取文章列表
+ * @method
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.getList = (req, res) => {
+    var by = req.query.by,
+        id = req.query.id,
+        key = req.query.key,
+        limit = req.query.limit,
+        page = req.query.page,
+        user = req.query.user,
+        date = req.query.date
+    page = parseInt(page, 100)
+    limit = parseInt(limit, 100)
+
+    if (!page) page = 1
+    if (!limit) limit = 100
+    var data = {
+            is_delete: 0,
+            user: user,
+            creat_date: date
+        },
+        skip = (page - 1) * limit
+    var sort = '-update_date'
+    if (by) {
+        sort = '-' + by
+    }
+
+    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp user items readtime'
+
+    Promise.all([
+        Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
+        Article.countAsync(data)
+    ]).then(([data, total]) => {
+        var arr = [],
+            totalPage = Math.ceil(total / limit),
+            user_id = req.cookies.userid
+        data = data.map(item => {
+            item.content = item.content.substring(0, 500)
+            return item
+        })
+        var json = {
+            code: 200,
+            data: {
+                list: data,
+                total,
+                hasNext: totalPage > page ? 1 : 0,
+                hasPrev: page > 1
             }
         }
         res.json(json)

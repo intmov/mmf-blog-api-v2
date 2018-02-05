@@ -7,14 +7,14 @@ const general = require('./general')
 const list = general.list
 const item = general.item
 
-var marked = require('marked')
-var hljs = require('highlight.js')
-marked.setOptions({
-    highlight(code) {
-        return hljs.highlightAuto(code).value
-    },
-    breaks: true
-})
+// var marked = require('marked')
+// var hljs = require('highlight.js')
+// marked.setOptions({
+//     highlight(code) {
+//         return hljs.highlightAuto(code).value
+//     },
+//     breaks: true
+// })
 
 /**
  * 管理时, 获取文章列表
@@ -46,35 +46,49 @@ exports.getItem = (req, res) => {
  * @return {[type]}     [description]
  */
 exports.insert = (req, res) => {
-    var categorys = req.body.category,
-        content = req.body.content,
-        html = marked(content),
-        title = req.body.title
-    var arr_category = categorys.split("|")
-    var category = arr_category[0]
-    var category_name = arr_category[1]
+    var categorys = req.body.category
+    var content = req.body.content
+    // var html = marked(content)
+    // var title = req.body.title
+    // var arr_category = categorys.split("|")
+    // var category = arr_category[0]
+    // var category_name = arr_category[1]
+    var readtime = moment.duration(req.body.readtime).minutes()
+    console.log(readtime)
+    console.log(req.body)
+    var category = 'test'
+    var category_name = 'test'
+    var title = 'title'
     var data = {
         title,
         category,
         category_name,
         content,
-        html,
+        html:'xx',
         visit: 0,
         like: 0,
         comment_count: 0,
-        creat_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+        creat_date: req.body.date,
         update_date: moment().format('YYYY-MM-DD HH:mm:ss'),
         is_delete: 0,
-        timestamp: moment().format('X')
+        timestamp: moment().format('X'),
+        user: req.body.user,
+        readtime: readtime,
+        items: req.body.items2
     }
     Article.createAsync(data).then(result => {
-        return Category.updateAsync({ _id: category }, { '$inc': { 'cate_num': 1 } }).then(() => {
-            return res.json({
-                code: 200,
-                message: '发布成功',
-                data: result
-            })
+        return res.json({
+            code: 200,
+            message: '发布成功',
+            data: result
         })
+        // return Category.updateAsync({ _id: category }, { '$inc': { 'cate_num': 1 } }).then(() => {
+        //     return res.json({
+        //         code: 200,
+        //         message: '发布成功',
+        //         data: result
+        //     })
+        // })
     }).catch(err => {
         res.json({
             code: -200,

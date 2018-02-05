@@ -14,7 +14,10 @@ var ArticleSchema = new Schema({
     creat_date: String,
     update_date: String,
     is_delete: Number,
-    timestamp: Number
+    timestamp: Number,
+    user: String,
+    readtime: Number,
+    items: String
 })
 
 var Article = mongoose.model('Article', ArticleSchema)
