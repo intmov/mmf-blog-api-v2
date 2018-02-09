@@ -64,7 +64,7 @@ exports.insert = (req, res) => {
         category,
         category_name,
         content,
-        html:'xx',
+        html:content,
         visit: 0,
         like: 0,
         comment_count: 0,
@@ -106,8 +106,17 @@ exports.insert = (req, res) => {
  */
 exports.deletes = (req, res) => {
     var id = req.query.id
-    Article.updateAsync({ _id: id }, { is_delete: 1 }).then(() => {
-        return Category.updateAsync({ _id: id }, { '$inc': { 'cate_num': -1 } }).then(result => {
+    const data = {}
+    if(id){
+        data._id = id
+    }else{
+        data.creat_date = req.query.date
+        data.user = req.query.username
+        data.is_delete = 0
+    }
+    console.log(data)
+    Article.updateAsync(data, { is_delete: 1 }).then(() => {
+        return Category.updateAsync( data , { '$inc': { 'cate_num': -1 } }).then(result => {
             res.json({
                 code: 200,
                 message: '更新成功',

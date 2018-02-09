@@ -186,11 +186,16 @@ exports.getList = (req, res) => {
     if (!page) page = 1
     if (!limit) limit = 100
     var data = {
-            is_delete: 0,
-            user: user,
-            creat_date: date
+            is_delete: 0
         },
         skip = (page - 1) * limit
+    if (user) {
+        data.user = user
+    }
+    if (date) {
+        var reg = new RegExp(date, 'i')
+        data.creat_date = {$regex : reg}
+    }
     var sort = '-update_date'
     if (by) {
         sort = '-' + by
