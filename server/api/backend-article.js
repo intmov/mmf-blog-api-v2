@@ -54,8 +54,6 @@ exports.insert = (req, res) => {
     // var category = arr_category[0]
     // var category_name = arr_category[1]
     var readtime = moment.duration(req.body.readtime).minutes()
-    console.log(readtime)
-    console.log(req.body)
     var category = 'test'
     var category_name = 'test'
     var title = 'title'

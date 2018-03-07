@@ -1,4 +1,5 @@
 var mongoose = require('../mongoose')
+var moment = require('moment')
 var Article = mongoose.model('Article')
 var Like = mongoose.model('Like')
 
@@ -222,6 +223,65 @@ exports.getList = (req, res) => {
                 hasNext: totalPage > page ? 1 : 0,
                 hasPrev: page > 1
             }
+        }
+        res.json(json)
+    }).catch(err => {
+        res.json({
+            code: -200,
+            message: err.toString()
+        })
+    })
+}
+
+
+exports.getSummary = (req, res) => {
+    var startDate = req.query.startDate,
+        endDate = req.query.endDate,
+        type = req.query.type
+
+    var data = {
+        is_delete: 0
+    }
+    const formatStr='YYYY-MM-DD'
+    endDate = moment().format(formatStr)
+    if(type === 'day'){
+        startDate = moment().format(formatStr)
+    }else if(type ==='month' || type==='week'){
+        startDate =  moment().startOf(type).format(formatStr)
+    }
+
+    var fields = 'creat_date update_date user readtime'
+
+    Promise.all([
+        Article.find(data, fields).where('creat_date').gte(startDate).lte(endDate).sort('-update_date').exec(),
+        Article.countAsync(data)
+    ]).then(([data, total]) => {
+        console.log(data)
+        var groupData = []
+        var index = {}
+        let offset = 0
+        for(let row of data){
+            if(index.hasOwnProperty(row.user)){
+                let curdata = groupData[index[row.user]]
+                curdata.readtime += row.readtime
+                curdata.update_date = row.update_date
+                curdata.days += 1
+            }else{
+                groupData.push({
+                    user: row.user,
+                    readtime: row.readtime,
+                    update_date: row.update_date,
+                    days: 1,
+                })
+                index[row.user] = offset
+                offset ++
+            }
+        }
+
+        console.log(groupData)
+        var json = {
+            code: 200,
+            data: groupData
         }
         res.json(json)
     }).catch(err => {

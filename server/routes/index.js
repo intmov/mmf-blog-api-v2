@@ -82,6 +82,8 @@ router.get('/frontend/comment/recover', isAdmin, frontendComment.recover)
 // ------ 文章 ------
 // 前台浏览时, 获取文章列表
 router.get('/frontend/article/list', frontendArticle.getList)
+
+router.get('/frontend/article/summary', frontendArticle.getSummary)
 // 前台浏览时, 获取单篇文章
 router.get('/frontend/article/item', frontendArticle.getItem)
 // 前台浏览时, 热门文章
