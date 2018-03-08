@@ -273,9 +273,17 @@ exports.getSummary = (req, res) => {
         }
 
         Promise.all([User.find({is_delete:0}, "username").exec()]).then(([users]) =>{
-                // console.log("users"+users)
+                console.log(groupData)
+                console.log(users)
                 for(const us of users){
-                    if(!groupData.includes(p => p.user === us.username)){
+                    let fond = false
+                    for(const gd of groupData){
+                        if(gd.user === us.username){
+                            fond = true
+                            break
+                        }
+                    }
+                    if(!fond){
                         groupData.push({
                             user: us.username,
                             readtime: 0,
@@ -286,6 +294,8 @@ exports.getSummary = (req, res) => {
                         })
                     }
                 }
+
+            console.log(groupData)
 
                 // console.log(groupData)
                 var json = {
