@@ -9,7 +9,10 @@ var UserSchema = new Schema({
     creat_date: String,
     update_date: String,
     is_delete: Number,
-    timestamp: Number
+    timestamp: Number,
+    user_groups: String,
+    last_update: String,
+    continue_days: Number
 })
 
 var User = mongoose.model('User', UserSchema)

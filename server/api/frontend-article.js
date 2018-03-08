@@ -2,15 +2,7 @@ var mongoose = require('../mongoose')
 var moment = require('moment')
 var Article = mongoose.model('Article')
 var Like = mongoose.model('Like')
-
-// var marked = require('marked')
-// var hljs = require('highlight.js')
-// marked.setOptions({
-//     highlight(code) {
-//         return hljs.highlightAuto(code).value
-//     },
-//     breaks: true
-// })
+var User = mongoose.model('User')
 
 /**
  * 前台浏览时, 获取文章列表
@@ -202,15 +194,13 @@ exports.getList = (req, res) => {
         sort = '-' + by
     }
 
-    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp user items readtime'
+    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp user items readtime chapters'
 
     Promise.all([
         Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
         Article.countAsync(data)
     ]).then(([data, total]) => {
-        var arr = [],
-            totalPage = Math.ceil(total / limit),
-            user_id = req.cookies.userid
+         var  totalPage = Math.ceil(total / limit),
         data = data.map(item => {
             item.content = item.content.substring(0, 500)
             return item
@@ -250,27 +240,31 @@ exports.getSummary = (req, res) => {
         startDate =  moment().startOf(type).format(formatStr)
     }
 
-    var fields = 'creat_date update_date user readtime'
+    var fields = 'creat_date update_date user chapters meditation readtime'
 
     Promise.all([
         Article.find(data, fields).where('creat_date').gte(startDate).lte(endDate).sort('-update_date').exec(),
         Article.countAsync(data)
     ]).then(([data, total]) => {
-        console.log(data)
+        // console.log(data)
         var groupData = []
         var index = {}
         let offset = 0
+
         for(let row of data){
             if(index.hasOwnProperty(row.user)){
                 let curdata = groupData[index[row.user]]
-                curdata.readtime += row.readtime
-                curdata.update_date = row.update_date
+                curdata.readtime += (row.readtime || 0)
+                curdata.meditation += ( row.meditation || 0)
+                curdata.chapters += (row.chapters || 0)
                 curdata.days += 1
             }else{
                 groupData.push({
                     user: row.user,
-                    readtime: row.readtime,
+                    readtime: row.readtime||0,
                     update_date: row.update_date,
+                    meditation: row.meditation||0,
+                    chapters: row.chapters||0,
                     days: 1,
                 })
                 index[row.user] = offset
@@ -278,12 +272,36 @@ exports.getSummary = (req, res) => {
             }
         }
 
-        console.log(groupData)
-        var json = {
-            code: 200,
-            data: groupData
-        }
-        res.json(json)
+        Promise.all([User.find({is_delete:0}, "username").exec()]).then(([users]) =>{
+                // console.log("users"+users)
+                for(const us of users){
+                    if(!groupData.includes(p => p.user === us.username)){
+                        groupData.push({
+                            user: us.username,
+                            readtime: 0,
+                            update_date: us.last_update || ('0000-00-00 00:00:00'),
+                            meditation: 0,
+                            chapters: 0,
+                            days: 0,
+                        })
+                    }
+                }
+
+                // console.log(groupData)
+                var json = {
+                    code: 200,
+                    data: groupData
+                }
+                res.json(json)
+
+        }).catch(err => {
+            // console.log(err)
+            res.json({
+                code: -200,
+                message: err.toString()
+            })
+        })
+
     }).catch(err => {
         res.json({
             code: -200,

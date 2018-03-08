@@ -72,7 +72,9 @@ exports.insert = (req, res) => {
         timestamp: moment().format('X'),
         user: req.body.user,
         readtime: readtime,
-        items: req.body.items2
+        items: req.body.items2,
+        meditation: req.body.meditation,
+        chapters: req.body.chapters
     }
     Article.createAsync(data).then(result => {
         return res.json({
@@ -80,7 +82,7 @@ exports.insert = (req, res) => {
             message: '发布成功',
             data: result
         })
-        // return Category.updateAsync({ _id: category }, { '$inc': { 'cate_num': 1 } }).then(() => {
+        // return User.updateAsync({ _id: category }, { '$inc': { 'cate_num': 1 } }).then(() => {
         //     return res.json({
         //         code: 200,
         //         message: '发布成功',
