@@ -283,7 +283,7 @@ exports.getSummary = (req, res) => {
                             break
                         }
                     }
-                    if(!fond){
+                    if(!fond && us.username !== 'admin'){
                         groupData.push({
                             user: us.username,
                             readtime: 0,
