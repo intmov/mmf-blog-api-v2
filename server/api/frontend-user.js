@@ -132,6 +132,8 @@ exports.insert = (req, res) => {
                     email,
                     creat_date: moment().format('YYYY-MM-DD HH:mm:ss'),
                     update_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    last_update: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    continue_days: 0,
                     is_delete: 0,
                     timestamp: moment().format('X')
                 }).then(() => {

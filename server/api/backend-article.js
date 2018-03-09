@@ -46,17 +46,11 @@ exports.getItem = (req, res) => {
  * @return {[type]}     [description]
  */
 exports.insert = (req, res) => {
-    var categorys = req.body.category
     var content = req.body.content
-    // var html = marked(content)
-    // var title = req.body.title
-    // var arr_category = categorys.split("|")
-    // var category = arr_category[0]
-    // var category_name = arr_category[1]
-    var readtime = moment.duration(req.body.readtime).minutes()
-    var category = 'test'
-    var category_name = 'test'
-    var title = 'title'
+    var readtime = req.body.readtime2
+    var category = req.body.username
+    var category_name = req.body.username
+    var title = req.body.items2.substr(0,20)
     var data = {
         title,
         category,
@@ -70,7 +64,8 @@ exports.insert = (req, res) => {
         update_date: moment().format('YYYY-MM-DD HH:mm:ss'),
         is_delete: 0,
         timestamp: moment().format('X'),
-        user: req.body.user,
+        userid: req.body.userid,
+        username: req.body.username,
         readtime: readtime,
         items: req.body.items2,
         meditation: req.body.meditation,
@@ -111,7 +106,7 @@ exports.deletes = (req, res) => {
         data._id = id
     }else{
         data.creat_date = req.query.date
-        data.user = req.query.username
+        data.userid = req.query.userid
         data.is_delete = 0
     }
     console.log(data)

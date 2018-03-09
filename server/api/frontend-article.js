@@ -183,7 +183,7 @@ exports.getList = (req, res) => {
         },
         skip = (page - 1) * limit
     if (user) {
-        data.user = user
+        data.userid = user
     }
     if (date) {
         var reg = new RegExp(date, 'i')
@@ -194,7 +194,7 @@ exports.getList = (req, res) => {
         sort = '-' + by
     }
 
-    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp user items readtime chapters'
+    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp userid username items readtime chapters'
 
     Promise.all([
         Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
@@ -240,7 +240,7 @@ exports.getSummary = (req, res) => {
         startDate =  moment().startOf(type).format(formatStr)
     }
 
-    var fields = 'creat_date update_date user chapters meditation readtime'
+    var fields = 'creat_date update_date username chapters meditation readtime'
 
     Promise.all([
         Article.find(data, fields).where('creat_date').gte(startDate).lte(endDate).sort('-update_date').exec(),
@@ -252,27 +252,27 @@ exports.getSummary = (req, res) => {
         let offset = 0
 
         for(let row of data){
-            if(index.hasOwnProperty(row.user)){
-                let curdata = groupData[index[row.user]]
+            if(index.hasOwnProperty(row.username)){
+                let curdata = groupData[index[row.username]]
                 curdata.readtime += (row.readtime || 0)
                 curdata.meditation += ( row.meditation || 0)
                 curdata.chapters += (row.chapters || 0)
                 curdata.days += 1
             }else{
                 groupData.push({
-                    user: row.user,
+                    user: row.username,
                     readtime: row.readtime||0,
                     update_date: row.update_date,
                     meditation: row.meditation||0,
                     chapters: row.chapters||0,
                     days: 1,
                 })
-                index[row.user] = offset
+                index[row.username] = offset
                 offset ++
             }
         }
 
-        Promise.all([User.find({is_delete:0}, "username").exec()]).then(([users]) =>{
+        Promise.all([User.find({is_delete:0}, "_id username").exec()]).then(([users]) =>{
                 console.log(groupData)
                 console.log(users)
                 for(const us of users){
@@ -286,6 +286,7 @@ exports.getSummary = (req, res) => {
                     if(!fond && us.username !== 'admin'){
                         groupData.push({
                             user: us.username,
+                            userid: us._id,
                             readtime: 0,
                             update_date: us.last_update || ('0000-00-00 00:00:00'),
                             meditation: 0,
