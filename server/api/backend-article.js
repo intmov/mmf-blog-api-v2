@@ -51,6 +51,16 @@ exports.insert = (req, res) => {
     var category = req.body.username
     var category_name = req.body.username
     var title = req.body.items2.substr(0,20)
+    const now = req.body.date
+    const dateformat='YYYY-MM-DD'
+    // earlier than now or late than 2 days
+    if(now > moment().format(dateformat) || now < moment().subtract(1, 'days')){
+        return res.json({
+            code: -200,
+            message: '这天无法打卡'
+        })
+    }
+
     var data = {
         title,
         category,
