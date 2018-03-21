@@ -173,8 +173,8 @@ exports.getList = (req, res) => {
         page = req.query.page,
         user = req.query.user,
         date = req.query.date
-    page = parseInt(page, 100)
-    limit = parseInt(limit, 100)
+    page = parseInt(page, 10)
+    limit = parseInt(limit, 10)
 
     if (!page) page = 1
     if (!limit) limit = 100
@@ -183,7 +183,7 @@ exports.getList = (req, res) => {
         },
         skip = (page - 1) * limit
     if (user) {
-        data.userid = user
+        data.username = user
     }
     if (date) {
         var reg = new RegExp(date, 'i')
