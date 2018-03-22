@@ -18,6 +18,7 @@ var ArticleSchema = new Schema({
     userid: String,
     username: String,
     readtime: Number,
+    quality: Number,
     items: String,
     meditation: Number,
     chapters: Number

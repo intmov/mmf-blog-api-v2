@@ -76,6 +76,7 @@ exports.insert = (req, res) => {
             userid: req.body.userid,
             username: req.body.username,
             readtime: readtime,
+            quality: req.body.quality,
             items: req.body.items2,
             meditation: req.body.meditation,
             chapters: req.body.chapters

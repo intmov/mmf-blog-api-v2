@@ -194,7 +194,7 @@ exports.getList = (req, res) => {
         sort = '-' + by
     }
 
-    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp userid username items readtime chapters'
+    var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp userid username items readtime quality chapters'
 
     Promise.all([
         Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
@@ -240,7 +240,7 @@ exports.getSummary = (req, res) => {
         startDate =  moment().startOf(type).format(formatStr)
     }
 
-    var fields = 'creat_date update_date username chapters meditation readtime'
+    var fields = 'creat_date update_date username chapters meditation readtime quality'
 
     Promise.all([
         Article.find(data, fields).where('creat_date').gte(startDate).lte(endDate).sort('-update_date').exec(),
@@ -255,6 +255,7 @@ exports.getSummary = (req, res) => {
             if(index.hasOwnProperty(row.username)){
                 let curdata = groupData[index[row.username]]
                 curdata.readtime += (row.readtime || 0)
+                curdata.quality = ((curdata.quality * curdata.days) + row.quality) / (curdata.days+1.0)
                 curdata.meditation += ( row.meditation || 0)
                 curdata.chapters += (row.chapters || 0)
                 curdata.days += 1
@@ -262,6 +263,7 @@ exports.getSummary = (req, res) => {
                 groupData.push({
                     user: row.username,
                     readtime: row.readtime||0,
+                    quality: row.quality || 0,
                     update_date: row.update_date,
                     meditation: row.meditation||0,
                     chapters: row.chapters||0,
@@ -273,8 +275,8 @@ exports.getSummary = (req, res) => {
         }
 
         Promise.all([User.find({is_delete:0}, "_id username").exec()]).then(([users]) =>{
-                console.log(groupData)
-                console.log(users)
+                // console.log(groupData)
+                // console.log(users)
                 for(const us of users){
                     let fond = false
                     for(const gd of groupData){
@@ -288,6 +290,7 @@ exports.getSummary = (req, res) => {
                             user: us.username,
                             userid: us._id,
                             readtime: 0,
+                            quality: 0,
                             update_date: us.last_update || ('0000-00-00 00:00:00'),
                             meditation: 0,
                             chapters: 0,
@@ -296,7 +299,7 @@ exports.getSummary = (req, res) => {
                     }
                 }
 
-            console.log(groupData)
+            // console.log(groupData)
 
                 // console.log(groupData)
                 var json = {
