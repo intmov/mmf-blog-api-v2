@@ -59,47 +59,49 @@ exports.insert = (req, res) => {
             code: -200,
             message: '这天无法打卡'
         })
+    }else{
+        var data = {
+            title,
+            category,
+            category_name,
+            content,
+            html:content,
+            visit: 0,
+            like: 0,
+            comment_count: 0,
+            creat_date: req.body.date,
+            update_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            is_delete: 0,
+            timestamp: moment().format('X'),
+            userid: req.body.userid,
+            username: req.body.username,
+            readtime: readtime,
+            items: req.body.items2,
+            meditation: req.body.meditation,
+            chapters: req.body.chapters
+        }
+        Article.createAsync(data).then(result => {
+            return res.json({
+                code: 200,
+                message: '发布成功',
+                data: result
+            })
+            // return User.updateAsync({ _id: category }, { '$inc': { 'cate_num': 1 } }).then(() => {
+            //     return res.json({
+            //         code: 200,
+            //         message: '发布成功',
+            //         data: result
+            //     })
+            // })
+        }).catch(err => {
+            res.json({
+                code: -200,
+                message: err.toString()
+            })
+        })
+
     }
 
-    var data = {
-        title,
-        category,
-        category_name,
-        content,
-        html:content,
-        visit: 0,
-        like: 0,
-        comment_count: 0,
-        creat_date: req.body.date,
-        update_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-        is_delete: 0,
-        timestamp: moment().format('X'),
-        userid: req.body.userid,
-        username: req.body.username,
-        readtime: readtime,
-        items: req.body.items2,
-        meditation: req.body.meditation,
-        chapters: req.body.chapters
-    }
-    Article.createAsync(data).then(result => {
-        return res.json({
-            code: 200,
-            message: '发布成功',
-            data: result
-        })
-        // return User.updateAsync({ _id: category }, { '$inc': { 'cate_num': 1 } }).then(() => {
-        //     return res.json({
-        //         code: 200,
-        //         message: '发布成功',
-        //         data: result
-        //     })
-        // })
-    }).catch(err => {
-        res.json({
-            code: -200,
-            message: err.toString()
-        })
-    })
 }
 
 /**
@@ -119,7 +121,7 @@ exports.deletes = (req, res) => {
         data.userid = req.query.userid
         data.is_delete = 0
     }
-    console.log(data)
+    //console.log(data)
     Article.updateAsync(data, { is_delete: 1 }).then(() => {
         return Category.updateAsync( data , { '$inc': { 'cate_num': -1 } }).then(result => {
             res.json({
