@@ -255,7 +255,9 @@ exports.getSummary = (req, res) => {
             if(index.hasOwnProperty(row.username)){
                 let curdata = groupData[index[row.username]]
                 curdata.readtime += (row.readtime || 0)
-                curdata.quality = ((curdata.quality * curdata.days) + row.quality) / (curdata.days+1.0)
+                curdata.qualitys += ( row.quality || 0)
+                curdata.qualityCnt += row.quality && row.quality>0 ? 1:0
+                curdata.quality = curdata.qualitys / curdata.qualityCnt
                 curdata.meditation += ( row.meditation || 0)
                 curdata.chapters += (row.chapters || 0)
                 curdata.days += 1
@@ -264,6 +266,8 @@ exports.getSummary = (req, res) => {
                     user: row.username,
                     readtime: row.readtime||0,
                     quality: row.quality || 0,
+                    qualityCnt: row.quality && row.quality>0 ? 1:0,
+                    qualitys: row.quality || 0,
                     update_date: row.update_date,
                     meditation: row.meditation||0,
                     chapters: row.chapters||0,
