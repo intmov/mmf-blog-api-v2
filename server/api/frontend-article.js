@@ -261,6 +261,7 @@ exports.getSummary = (req, res) => {
                 curdata.meditation += ( row.meditation || 0)
                 curdata.chapters += (row.chapters || 0)
                 curdata.days += 1
+                curdata.late_days += (row.update_date.startsWith(row.creat_date)?0:1)
             }else{
                 groupData.push({
                     user: row.username,
@@ -272,6 +273,7 @@ exports.getSummary = (req, res) => {
                     meditation: row.meditation||0,
                     chapters: row.chapters||0,
                     days: 1,
+                    late_days: row.update_date.startsWith(row.creat_date)?0:1,
                 })
                 index[row.username] = offset
                 offset ++
@@ -299,6 +301,7 @@ exports.getSummary = (req, res) => {
                             meditation: 0,
                             chapters: 0,
                             days: 0,
+                            late_days: 0,
                         })
                     }
                 }
