@@ -12,7 +12,7 @@ var UserSchema = new Schema({
     timestamp: Number,
     user_groups: String,
     last_update: String,
-    continue_days: Number
+    continue_days: Number,
 })
 
 var User = mongoose.model('User', UserSchema)

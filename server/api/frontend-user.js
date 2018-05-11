@@ -4,6 +4,7 @@ var jwt = require('jsonwebtoken')
 
 var mongoose = require('../mongoose')
 var User = mongoose.model('User')
+var Group = mongoose.model('Group')
 
 var config = require('../config')
 var md5Pre = config.md5Pre
@@ -101,7 +102,8 @@ exports.logout = (req, res) => {
 exports.insert = (req, res) => {
     var email = req.body.email,
         password = req.body.password,
-        username = req.body.username
+        username = req.body.username,
+        user_groups = req.body.user_groups
 
     if (!username || !password || !email) {
         res.json({
@@ -133,6 +135,7 @@ exports.insert = (req, res) => {
                     creat_date: moment().format('YYYY-MM-DD HH:mm:ss'),
                     update_date: moment().format('YYYY-MM-DD HH:mm:ss'),
                     last_update: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    user_groups: user_groups,
                     continue_days: 0,
                     is_delete: 0,
                     timestamp: moment().format('X')
@@ -142,6 +145,9 @@ exports.insert = (req, res) => {
                         message: '注册成功!',
                         data: 'success'
                     })
+                    // Group.createAsync({
+                    //
+                    // })
                 }).catch(err => {
                     res.json({
                         code: -200,
@@ -195,11 +201,15 @@ exports.modify = (req, res) => {
     var _id = req.body.id,
         email = req.body.email,
         password = req.body.password,
-        username = req.body.username
+        username = req.body.username,
+        user_groups = req.body.user_groups
     var data = {
         email, username, update_date: moment().format('YYYY-MM-DD HH:mm:ss')
     }
     if (password) data.password = md5(md5Pre + password)
+    if(user_groups){
+        data.user_groups = user_groups
+    }
     modify(res, User, _id, data)
 }
 
@@ -215,9 +225,15 @@ exports.account = (req, res) => {
     var _id = req.body.id,
         email = req.body.email,
         user_id = req.cookies.userid,
-        username = req.body.username
+        username = req.body.username,
+        user_groups = req.body.user_groups
+
+    var data = { email, username }
+    if(user_groups) {
+        data.user_groups = user_groups
+    }
     if (user_id === _id) {
-        User.updateAsync({ _id }, { '$set': { email, username } }).then(() => {
+        User.updateAsync({ _id }, { '$set': data }).then(() => {
             res.json({
                 code: 200,
                 message: '更新成功',

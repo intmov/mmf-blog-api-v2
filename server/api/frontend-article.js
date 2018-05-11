@@ -172,9 +172,13 @@ exports.getList = (req, res) => {
         limit = req.query.limit,
         page = req.query.page,
         user = req.query.user,
-        date = req.query.date
+        date = req.query.date,
+        user_groups = req.query.user_groups
+
     page = parseInt(page, 10)
     limit = parseInt(limit, 10)
+
+    var inUser = []
 
     if (!page) page = 1
     if (!limit) limit = 100
@@ -182,9 +186,7 @@ exports.getList = (req, res) => {
             is_delete: 0
         },
         skip = (page - 1) * limit
-    if (user) {
-        data.username = user
-    }
+
     if (date) {
         var reg = new RegExp(date, 'i')
         data.creat_date = {$regex : reg}
@@ -196,38 +198,77 @@ exports.getList = (req, res) => {
 
     var filds = 'title content category category_name visit like comment_count creat_date update_date is_delete timestamp userid username items readtime quality chapters'
 
-    Promise.all([
-        Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
-        Article.countAsync(data)
-    ]).then(([data, total]) => {
-         var  totalPage = Math.ceil(total / limit),
-        data = data.map(item => {
-            item.content = item.content.substring(0, 500)
-            return item
-        })
-        var json = {
-            code: 200,
-            data: {
-                list: data,
-                total,
-                hasNext: totalPage > page ? 1 : 0,
-                hasPrev: page > 1
+    if (user) {
+        data.username = user
+
+        Promise.all([
+            Article.find(data, filds).sort(sort).skip(skip).limit(limit).exec(),
+            Article.countAsync(data)
+        ]).then(([data, total]) => {
+            var  totalPage = Math.ceil(total / limit),
+                data = data.map(item => {
+                    item.content = item.content.substring(0, 500)
+                    return item
+                })
+            var json = {
+                code: 200,
+                data: {
+                    list: data,
+                    total,
+                    hasNext: totalPage > page ? 1 : 0,
+                    hasPrev: page > 1
+                }
             }
-        }
-        res.json(json)
-    }).catch(err => {
-        res.json({
-            code: -200,
-            message: err.toString()
+            res.json(json)
+        }).catch(err => {
+            res.json({
+                code: -200,
+                message: err.toString()
+            })
         })
-    })
+    }else if(user_groups){
+        console.log(user_groups)
+        User.find({user_groups:new RegExp(user_groups,'i'), is_delete:0},'username').exec().then(result =>{
+            let usernames=[]
+            result.map(r => usernames.push(r.username))
+            Promise.all([
+                Article.find(data, filds).where('username').in(usernames).sort(sort).skip(skip).limit(limit).exec(),
+                Article.countAsync(data)
+            ]).then(([data, total]) => {
+                var  totalPage = Math.ceil(total / limit),
+                    data = data.map(item => {
+                        item.content = item.content.substring(0, 500)
+                        return item
+                    })
+                var json = {
+                    code: 200,
+                    data: {
+                        list: data,
+                        total,
+                        hasNext: totalPage > page ? 1 : 0,
+                        hasPrev: page > 1
+                    }
+                }
+                res.json(json)
+            }).catch(err => {
+                res.json({
+                    code: -200,
+                    message: err.toString()
+                })
+            })
+        })
+
+    }
+
+
 }
 
 
 exports.getSummary = (req, res) => {
     var startDate = req.query.startDate,
         endDate = req.query.endDate,
-        type = req.query.type
+        type = req.query.type,
+        user_groups = req.query.user_groups
 
     var data = {
         is_delete: 0
@@ -242,48 +283,48 @@ exports.getSummary = (req, res) => {
 
     var fields = 'creat_date update_date username chapters meditation readtime quality'
 
-    Promise.all([
-        Article.find(data, fields).where('creat_date').gte(startDate).lte(endDate).sort('-update_date').exec(),
-        Article.countAsync(data)
-    ]).then(([data, total]) => {
-        // console.log(data)
-        var groupData = []
-        var index = {}
-        let offset = 0
+    if(user_groups){
+        console.log(user_groups)
+        User.find({user_groups:new RegExp(user_groups,'i'), is_delete:0},'username').exec().then(result =>{
+            let usernames=[]
+            result.map(r => usernames.push(r.username))
+            Article.find(data, fields).where('creat_date').gte(startDate).lte(endDate).where('username').in(usernames).sort('-update_date').exec()
+                .then( data => {
+                // console.log(data)
+                var groupData = []
+                var index = {}
+                let offset = 0
 
-        for(let row of data){
-            if(index.hasOwnProperty(row.username)){
-                let curdata = groupData[index[row.username]]
-                curdata.readtime += (row.readtime || 0)
-                curdata.qualitys += ( row.quality || 0)
-                curdata.qualityCnt += row.quality && row.quality>0 ? 1:0
-                curdata.quality = curdata.qualitys / curdata.qualityCnt
-                curdata.meditation += ( row.meditation || 0)
-                curdata.chapters += (row.chapters || 0)
-                curdata.days += 1
-                curdata.late_days += (row.update_date.startsWith(row.creat_date)?0:1)
-            }else{
-                groupData.push({
-                    user: row.username,
-                    readtime: row.readtime||0,
-                    quality: row.quality || 0,
-                    qualityCnt: row.quality && row.quality>0 ? 1:0,
-                    qualitys: row.quality || 0,
-                    update_date: row.update_date,
-                    meditation: row.meditation||0,
-                    chapters: row.chapters||0,
-                    days: 1,
-                    late_days: row.update_date.startsWith(row.creat_date)?0:1,
-                })
-                index[row.username] = offset
-                offset ++
-            }
-        }
+                for(let row of data){
+                    if(index.hasOwnProperty(row.username)){
+                        let curdata = groupData[index[row.username]]
+                        curdata.readtime += (row.readtime || 0)
+                        curdata.qualitys += ( row.quality || 0)
+                        curdata.qualityCnt += row.quality && row.quality>0 ? 1:0
+                        curdata.quality = curdata.qualitys / curdata.qualityCnt
+                        curdata.meditation += ( row.meditation || 0)
+                        curdata.chapters += (row.chapters || 0)
+                        curdata.days += 1
+                        curdata.late_days += (row.update_date.startsWith(row.creat_date)?0:1)
+                    }else{
+                        groupData.push({
+                            user: row.username,
+                            readtime: row.readtime||0,
+                            quality: row.quality || 0,
+                            qualityCnt: row.quality && row.quality>0 ? 1:0,
+                            qualitys: row.quality || 0,
+                            update_date: row.update_date,
+                            meditation: row.meditation||0,
+                            chapters: row.chapters||0,
+                            days: 1,
+                            late_days: row.update_date.startsWith(row.creat_date)?0:1,
+                        })
+                        index[row.username] = offset
+                        offset ++
+                    }
+                }
 
-        Promise.all([User.find({is_delete:0}, "_id username").exec()]).then(([users]) =>{
-                // console.log(groupData)
-                // console.log(users)
-                for(const us of users){
+                for(const us of result){
                     let fond = false
                     for(const gd of groupData){
                         if(gd.user === us.username){
@@ -306,7 +347,7 @@ exports.getSummary = (req, res) => {
                     }
                 }
 
-            // console.log(groupData)
+                // console.log(groupData)
 
                 // console.log(groupData)
                 var json = {
@@ -315,18 +356,14 @@ exports.getSummary = (req, res) => {
                 }
                 res.json(json)
 
-        }).catch(err => {
-            // console.log(err)
-            res.json({
-                code: -200,
-                message: err.toString()
+            }).catch(err => {
+                res.json({
+                    code: -200,
+                    message: err.toString()
+                })
             })
         })
 
-    }).catch(err => {
-        res.json({
-            code: -200,
-            message: err.toString()
-        })
-    })
+    }
+
 }
