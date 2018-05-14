@@ -158,6 +158,7 @@ exports.getTrending = (req, res) => {
 }
 
 
+
 /**
  * 前台浏览时, 获取文章列表
  * @method
@@ -227,7 +228,7 @@ exports.getList = (req, res) => {
             })
         })
     }else if(user_groups){
-        console.log(user_groups)
+        // console.log(user_groups)
         User.find({user_groups:new RegExp(user_groups,'i'), is_delete:0},'username').exec().then(result =>{
             let usernames=[]
             result.map(r => usernames.push(r.username))

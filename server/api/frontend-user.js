@@ -21,6 +21,22 @@ exports.getList = (req, res) => {
     list(req, res, User)
 }
 
+
+exports.getUserInGroup = (req, res) => {
+    var user_groups = req.query.user_groups
+    User.find({user_groups:new RegExp(user_groups,'i'), is_delete:0},'username').exec().then(result =>{
+        var json = {
+            code: 200,
+            data: result
+        }
+        res.json(json)
+    }).catch(err => {
+        res.json({
+            code: -200,
+            message: err.toString()
+        })
+    })
+}
 /**
  * 用户登录
  * @method login

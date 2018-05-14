@@ -102,6 +102,8 @@ router.post('/frontend/user/login', multipartMiddleware, frontendUser.login)
 router.post('/frontend/user/logout', isUser, frontendUser.logout)
 // 前台账号读取
 router.get('/frontend/user/account', isUser, frontendUser.getItem)
+// 前台组用户列表
+router.get('/frontend/user/group', isUser, frontendUser.getUserInGroup)
 // 前台账号修改
 router.post('/frontend/user/account', isUser, multipartMiddleware, frontendUser.account)
 // 前台密码修改
